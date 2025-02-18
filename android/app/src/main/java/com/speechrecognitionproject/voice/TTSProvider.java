@@ -1,4 +1,4 @@
-package com.speechrecognition.voice;
+package com.speechrecognitionproject.voice;
 
 import android.content.Context;
 

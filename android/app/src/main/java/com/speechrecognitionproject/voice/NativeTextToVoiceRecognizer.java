@@ -1,4 +1,4 @@
-package com.speechrecognition.voice;
+package com.speechrecognitionproject.voice;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -24,6 +24,7 @@ public class NativeTextToVoiceRecognizer implements ITextToSpeech {
     @Override
     public void addListener(ITextToSpeechListener listener) {
         this.listenerRef = new WeakReference<>(listener);
+        Log.e("Tag","AddListener Called by react native");
     }
     @Override
     public void startEngine() {
@@ -81,6 +82,7 @@ public class NativeTextToVoiceRecognizer implements ITextToSpeech {
                 }
             }));
     };
+
     @Override
     public void stopEngine() {
         if (textToSpeech != null) {

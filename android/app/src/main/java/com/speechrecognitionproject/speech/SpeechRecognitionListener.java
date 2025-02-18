@@ -1,4 +1,4 @@
-package com.example.application2.speech;
+package com.speechrecognitionproject.speech;
 
 import androidx.annotation.NonNull;
 

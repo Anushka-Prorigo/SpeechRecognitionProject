@@ -1,4 +1,4 @@
-package com.example.application2.speech;
+package com.speechrecognitionproject.speech;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,11 +7,8 @@ import android.os.Looper;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.speech.tts.TextToSpeech;
 import android.util.Log;
-import com.example.application2.DynamicLayout;
-import com.example.application2.SpeechRecognitionClass;
-import com.example.application2.voice.NativeTextToVoiceRecognizer;
+import com.speechrecognitionproject.voice.NativeTextToVoiceRecognizer;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 public class NativeSpeechRecognizer implements ISpeechRecognizer {
@@ -19,11 +16,8 @@ public class NativeSpeechRecognizer implements ISpeechRecognizer {
     public SpeechRecognizer speechRecognizer ;
     private WeakReference<Context> contextRef;
     private NativeTextToVoiceRecognizer nativeTextToVoiceRecognizer;
-    private SpeechRecognitionClass speechRecognitionClass ;
     private NativeSpeechRecognizer nativeSpeechRecognize;
-    private TextToSpeech textToSpeech;
     String recognizedText = "";
-    private DynamicLayout dynamicLayout;
     private long lastInputTime;
     public NativeSpeechRecognizer(Context context) {
         if (context != null) {
@@ -128,6 +122,7 @@ public class NativeSpeechRecognizer implements ISpeechRecognizer {
                                 if (data != null && !data.isEmpty()) {
                                     String recognizedText = data.get(0);
                                     Log.d("NativeSpeechRecognizer", "Recognized text: " + recognizedText);
+                                    setRecognitionListener(listener);
                                     if (listenerRef != null) {
                                         listenerRef.get().onReceiveSpeechRecognitionResult(recognizedText);
                                     } else {

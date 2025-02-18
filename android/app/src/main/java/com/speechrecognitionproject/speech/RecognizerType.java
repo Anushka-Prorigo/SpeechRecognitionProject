@@ -1,4 +1,4 @@
-package com.example.application2.speech;
+package com.speechrecognitionproject.speech;
 
 public enum RecognizerType {
     Native
