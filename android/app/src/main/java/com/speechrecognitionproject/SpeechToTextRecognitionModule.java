@@ -72,9 +72,13 @@ public void setListener(SpeechRecognitionListener listener) {
                     String recognizedText = speechResult;
                     Log.d("SpeechRecognition", "Entered Text: " + recognizedText);
                     if (speechCallback != null) {
-                         Log.d("SpeechRecognition", "Recognized Text: " + recognizedText);
+                        Log.d("SpeechRecognition", "Recognized Text: " + recognizedText);
 
-                        speechCallback.invoke(null, "hello " + recognizedText);  
+                        speechCallback.invoke(null, "You entered " + recognizedText); 
+                       Handler mainHandler = new Handler(Looper.getMainLooper());
+                        mainHandler.post(()-> {
+                        nativeSpeechRecognizer.stopRecognition();
+                    }); 
                         speechCallback = null;
                     }
                 } else {
