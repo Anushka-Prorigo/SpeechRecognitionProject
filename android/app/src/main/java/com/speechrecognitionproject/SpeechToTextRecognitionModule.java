@@ -111,8 +111,14 @@ public void setListener(SpeechRecognitionListener listener) {
     public void startSpeechRecognition(Callback callback)
     {
         this.speechCallback=callback;
-        nativeSpeechRecognizer.setRecognitionListener(speechRecognitionListener);
-        nativeSpeechRecognizer.startRecognition();
+
+         Handler mainHandler = new Handler(Looper.getMainLooper());
+                       mainHandler.post(()-> {
+                       nativeSpeechRecognizer.stopRecognition();
+                       nativeSpeechRecognizer.setRecognitionListener(speechRecognitionListener);
+                       nativeSpeechRecognizer.startRecognition();
+                    }); 
+       
         
     }
 };
