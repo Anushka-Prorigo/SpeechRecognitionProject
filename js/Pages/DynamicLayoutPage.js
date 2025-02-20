@@ -19,35 +19,39 @@ const DynamicLayoutPage = ({navigation}) => {
       }
   }, [currentStep]);
 
-  useEffect(() => {
+
+const runTTSAndSpeechRecognition = (speakText) => {
+    initTTS()
+        .then(() => {
+            return speak(speakText); 
+        })
+        .then(() => {
+            return startSpeechRecognition()
+                .then((speechResult) => {
+                    console.log('Recognized text:', speechResult); 
+                    if (!speechResult.toLowerCase().includes('yes') && !speechResult.toLowerCase().includes('no')) {
+                            return runTTSAndSpeechRecognition("confirm"+speechResult);
+                     }
+                    else if (speechResult.toLowerCase().includes('yes')) {
+                            handleInputChange(speechResult, currentStep);
+                    } 
+                     else if (speechResult.toLowerCase().includes('no')) {
+                             return runTTSAndSpeechRecognition("Enter"+text);
+                    }
+                    else {
+                            console.log("result not found");
+                    }
+                });
+        })
+     .catch((error) => console.error('Error with TTS or speech recognition:', error));
+};
+
+useEffect(() => {
+    console.log(`Current Step: ${currentStep}`);
     const currentStepData = steps.find(step => step.step_num === currentStep);
     if (currentStepData) {
-        setspeakText(speakText);
-
-        initTTS()
-            .then(() => {
-                return speak(currentStepData.step_label); 
-            })
-            .then(() => {
-                return startSpeechRecognition()
-                    .then((speechResult) => {
-                        console.log('Recognized text:', speechResult);  
-                        //handleInputChange(speechResult, currentStep);
-                        if (!speechResult.toLowerCase().includes('yes') && !speechResult.toLowerCase().includes('no')) {
-                            return speak("confirm"+speechResult);
-                        }
-                        else if (speechResult.toLowerCase().includes('yes')) {
-                            handleInputChange(speechResult, currentStep);
-                        } 
-                        else if (speechResult.toLowerCase().includes('no')) {
-                            startSpeechRecognition();
-                        }
-                        else {
-                            console.log("result not found");
-                        }
-                    });
-            })
-            .catch((error) => console.error('Error with TTS or speech recognition:', error));
+        setspeakText(currentStepData.step_label);
+        runTTSAndSpeechRecognition( currentStepData.step_label);
     } else {
         console.error(`Step data for step number ${currentStep} not found.`);
     }
@@ -88,7 +92,9 @@ const handleInputChange = (text, step_num) => {
                     onChangeText={(text) => handleInputChange(text, currentStepData.step_num)}
                     value={inputValues[currentStepData.step_num]}
                     placeholder={`Enter ${currentStepData.step_label}`}
+                    
                 />
+                <Image source={require('/Users/anushkap/SpeechRecognitionProject/js/assets/mic.jpeg')} style={styles.image} />
          </View>
         );
     };
@@ -104,7 +110,7 @@ const handleInputChange = (text, step_num) => {
                             <View key={step.step_num} style={styles.summaryItem}>
                                 <Text style={styles.summaryLabel}>{step.step_label}: </Text>
                                 <Text style={styles.summaryValue}>{inputValues[step_num]}</Text>
-                                <Image source={require('/Users/anushkap/SpeechRecognitionProject/js/assets/mic.jpeg')} style={styles.image} />                            </View>
+                            </View>
                         );
                     }
                     return null;
@@ -156,7 +162,8 @@ const styles = StyleSheet.create({
     image: {
         width: 100,
         height: 100,
-        marginBottom: 20,
+        marginBottom: 100,
+        marginLeft: 200,
     },
 });
 
