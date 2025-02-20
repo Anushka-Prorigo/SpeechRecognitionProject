@@ -22,7 +22,7 @@ const HomePage = ({ navigation }) => {
         .catch((error) => console.error('Error initializing TTS:', error));
 }, []);
 
- return (
+return (
         <View style={styles.container}>
             <Text style={styles.text}>Say Start or Tap to Start Recognition</Text>
             <Image source={require('/Users/anushkap/SpeechRecognitionProject/js/assets/mic.jpeg')} style={styles.image} />
