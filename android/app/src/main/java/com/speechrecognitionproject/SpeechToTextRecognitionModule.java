@@ -74,7 +74,7 @@ public void setListener(SpeechRecognitionListener listener) {
                     if (speechCallback != null) {
                         Log.d("SpeechRecognition", "Recognized Text: " + recognizedText);
 
-                        speechCallback.invoke(null, "You entered " + recognizedText); 
+                        speechCallback.invoke(null, " " + recognizedText); 
                        Handler mainHandler = new Handler(Looper.getMainLooper());
                         mainHandler.post(()-> {
                         nativeSpeechRecognizer.stopRecognition();

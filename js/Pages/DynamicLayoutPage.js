@@ -8,39 +8,91 @@ const steps = jsonData.steps;
 const DynamicLayoutPage = () => {
     const [currentStep, setCurrentStep] = useState(steps[0]?.step_num || '');
     const [inputValues, setInputValues] = useState({});
-    const [recognizedText, setRecognizedText] = useState('');
     const [speakText,setspeakText] = useState('');
+    const [handleInput,sethandleInput] = useState(false);
 
   useEffect(() => {
       const currentStepData = steps.find(step => step.step_num === currentStep);
       if (currentStepData) {
           setspeakText(currentStepData.step_label);
+          renderTextboxes();
       }
   }, [currentStep]);
 
+  useEffect(()=>{
+    if(handleInput)
+    {
+       handleInputChange();
+    }
+  },[handleInput]);
+
   useEffect(() => {
-      if (speakText) {
-          speak(speakText) 
-              .then(() => {
-                  startSpeechRecognition()
-                     .then(result) (()=>{
-                         console.log("text is"+result);
-                   })
-                   
-              })
-              .catch((error) => console.error('Error speaking:', error));
-      }
-  }, [speakText]);
-    
- const handleInputChange = (text, step_num) => {
-        setInputValues({ ...inputValues, [step_num]: text });
-        if (text.trim() !== '') {
-            const currentStepData = steps.find(steps => steps.step_num === step_num);
-            if (currentStepData) {
-              setCurrentStep(currentStepData.next_step);
-          }
+    initTTS()
+      .then(() => {
+         return speak(speakText);  
+     })
+       .then((result) => {
+          console.log('Result from speak:', result); 
+           return startSpeechRecognition(); 
+      })
+        .then((speechResult) => {
+         console.log('Recognized text is:', speechResult); 
+         setInputValues(prevValues => ({
+            ...prevValues,
+            [currentStep]: speechResult
+        }))
+        sethandleInput(true);
+      })
+         .catch((error) => console.error('Error initializing TTS or speaking:', error));
+      },
+[speakText]);
+
+
+// const triggerTTSAndSpeechRecognition = (stepNum) => {
+//     const currentStepData = steps.find(step => step.step_num === stepNum);
+//     if (currentStepData) {
+//         setspeakText(currentStepData.step_label);
+//         initTTS()
+//       .then(() => {
+//          return speak(speakText);  
+//      })
+//        .then((result) => {
+//           console.log('Result from speak:', result); 
+//            return startSpeechRecognition(); 
+//       })
+//         .then((speechResult) => {
+//          console.log('Recognized text is:', speechResult); 
+//          setInputValues(prevValues => ({
+//             ...prevValues,
+//             [currentStep]: speechResult
+//         }));
+//         if (currentStepData.next_step) {
+//             setCurrentStep(currentStepData.next_step);
+//         }
+//       })
+//          .catch((error) => console.error('Error initializing TTS or speaking:', error));
+//     }
+// };
+
+// useEffect(() => {
+//     triggerTTSAndSpeechRecognition(currentStep);
+// }, [currentStep]);
+
+
+const handleInputChange = (text, step_num) => {
+    setInputValues(prevValues => ({
+        ...prevValues,
+        [step_num]: text
+    }));
+    console.log("handleInputChange","");
+
+    if (text.trim() !== '') {
+        const currentStepData = steps.find(step => step.step_num === step_num);
+        if (currentStepData && currentStepData.next_step) {
+            setCurrentStep(currentStepData.next_step);
         }
-    };
+    }
+};
 
     const renderTextboxes = () => {
         const currentStepData = steps.find(step => step.step_num === currentStep);
@@ -55,7 +107,7 @@ const DynamicLayoutPage = () => {
                     value={inputValues[currentStepData.step_num]}
                     placeholder={`Enter ${currentStepData.step_label}`}
                 />
-                 <Image source={require('/Users/anushkap/SpeechRecognitionProject/js/assets/mic.jpeg')} style={styles.image} />
+                
 
             </View>
         );

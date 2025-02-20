@@ -20,17 +20,22 @@ export const initializeSpeechRecognizer = () => {
   };
 
   export const startSpeechRecognition = () => {
-  SpeechToTextRecognitionModule.startSpeechRecognition((error, result) => {
-      if (error) {
-        console.log('Not Recognized Text:', error);
-        return;
-      }
-     console.log(result);
-      if (result) {
-        console.log('recognized text is:',result);
-        };
+    return new Promise((resolve, reject) => {
+        if (SpeechToTextRecognitionModule && SpeechToTextRecognitionModule.startSpeechRecognition) {
+          SpeechToTextRecognitionModule.startSpeechRecognition((error, result) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    console.log('recognized text is:',result);
+                    resolve(result);
+                }
+            });
+        } else {
+            reject(new Error('TextToSpeechRecognitionModule is undefined'));
+        }
     });
-  };
+};
+
 
 
 
