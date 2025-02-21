@@ -91,9 +91,8 @@ public void setListener(SpeechRecognitionListener listener) {
           
         
         
-        @Override
+        @Override 
         public void onReceiveError(@NonNull String error) {
-
             Handler mainHandler = new Handler(Looper.getMainLooper());
                         mainHandler.post(()-> {
                         nativeSpeechRecognizer.stopRecognition();

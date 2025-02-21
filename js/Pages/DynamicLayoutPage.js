@@ -11,40 +11,7 @@ const DynamicLayoutPage = ({navigation}) => {
     const [inputValues, setInputValues] = useState({});
     const [speakText,setspeakText] = useState('');
     const [showSummary,setShowSummary] = useState('');
-
-  useEffect(() => {
-      const currentStepData = steps.find(step => step.step_num === currentStep);
-      if (currentStepData) {
-          setspeakText(currentStepData.step_label);
-      }
-  }, [currentStep]);
-
-
-const runTTSAndSpeechRecognition = (speakText) => {
-    initTTS()
-        .then(() => {
-            return speak(speakText); 
-        })
-        .then(() => {
-            return startSpeechRecognition()
-                .then((speechResult) => {
-                    console.log('Recognized text:', speechResult); 
-                    if (!speechResult.toLowerCase().includes('yes') && !speechResult.toLowerCase().includes('no')) {
-                            return runTTSAndSpeechRecognition("confirm"+speechResult);
-                     }
-                    else if (speechResult.toLowerCase().includes('yes')) {
-                            handleInputChange(speechResult, currentStep);
-                    } 
-                     else if (speechResult.toLowerCase().includes('no')) {
-                             return runTTSAndSpeechRecognition("Enter"+text);
-                    }
-                    else {
-                            console.log("result not found");
-                    }
-                });
-        })
-     .catch((error) => console.error('Error with TTS or speech recognition:', error));
-};
+    const [speechResult,setspeechResult] = useState('');
 
 useEffect(() => {
     console.log(`Current Step: ${currentStep}`);
@@ -57,8 +24,37 @@ useEffect(() => {
     }
 }, [currentStep]);
 
+
+const runTTSAndSpeechRecognition = (speakText) => {
+    initTTS()
+        .then(() => {
+            return speak(speakText); 
+        })
+        .then(() => {
+            return startSpeechRecognition()
+                .then((speechResult) => {
+                    console.log('Recognized text:', speechResult);
+                    setspeechResult(speechResult);
+                    if (!speechResult.toLowerCase().includes('yes') && !speechResult.toLowerCase().includes('no')) { 
+                            return runTTSAndSpeechRecognition("confirm"+speechResult);
+                     }
+                    else if (speechResult.toLowerCase().includes('yes')) {
+                            handleInputChange(speechResult, currentStep);
+                    } 
+                     else if (speechResult.toLowerCase().includes('no')) {
+                           startSpeechRecognition();
+                    }
+                    else {
+                            console.log("result not found");
+                    }
+                });
+        })
+     .catch((error) => console.error('Error with TTS or speech recognition:', error));
+};
+
     
 const handleInputChange = (text, step_num) => {
+    setspeechResult('');
     setInputValues(prevValues => ({
         ...prevValues,
         [currentStep]: text
@@ -121,6 +117,11 @@ const handleInputChange = (text, step_num) => {
     };
     return (
         <View style={styles.container}>
+            {speechResult && (
+                <View style={styles.speechResultContainer}>
+                    <Text style={styles.speechResultText}>You Entered : {speechResult}</Text>
+                </View>
+            )}
             {!showSummary ? (
                 <>
                     {renderTextboxes()}
@@ -134,6 +135,7 @@ const handleInputChange = (text, step_num) => {
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {
@@ -164,6 +166,16 @@ const styles = StyleSheet.create({
         height: 100,
         marginBottom: 100,
         marginLeft: 200,
+    },
+    speechResultContainer: {
+        marginTop: 20,
+        padding: 10,
+        backgroundColor: '#d3d3d3',
+        borderRadius: 5,
+    },
+    speechResultText: {
+        fontSize: 16,
+        fontStyle: 'italic',
     },
 });
 
