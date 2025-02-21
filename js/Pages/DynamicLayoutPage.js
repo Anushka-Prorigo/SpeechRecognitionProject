@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Button,Image,TextInput, StyleSheet } from 'react-native';
 import jsonData from '/Users/anushkap/SpeechRecognitionProject/js/data/sample.json';
 import { speak, initTTS } from '../utils/ttsUtils';  
-import { startSpeechRecognition, initializeSpeechRecognizer } from '../utils/speechUtils'; 
-import HomePage from './HomePage';
+import { startSpeechRecognition} from '../utils/speechUtils'; 
 
 const steps = jsonData.steps;
+let text = '';
 const DynamicLayoutPage = ({navigation}) => {
     const [currentStep, setCurrentStep] = useState(steps[0]?.step_num || '');
     const [inputValues, setInputValues] = useState({});
     const [speakText,setspeakText] = useState('');
     const [showSummary,setShowSummary] = useState('');
     const [speechResult,setspeechResult] = useState('');
+    const [recognizing,setrecognizing] = useState(false);
 
 useEffect(() => {
     console.log(`Current Step: ${currentStep}`);
@@ -31,15 +32,19 @@ const runTTSAndSpeechRecognition = (speakText) => {
             return speak(speakText); 
         })
         .then(() => {
+            setrecognizing(true);
             return startSpeechRecognition()
-                .then((speechResult) => {
+            .then((speechResult) => {
+                setrecognizing(false);
                     console.log('Recognized text:', speechResult);
                     setspeechResult(speechResult);
                     if (!speechResult.toLowerCase().includes('yes') && !speechResult.toLowerCase().includes('no')) { 
+                            text = speechResult;
                             return runTTSAndSpeechRecognition("confirm"+speechResult);
+                           
                      }
                     else if (speechResult.toLowerCase().includes('yes')) {
-                            handleInputChange(speechResult, currentStep);
+                            handleInputChange(text, currentStep);
                     } 
                      else if (speechResult.toLowerCase().includes('no')) {
                            startSpeechRecognition();
@@ -47,13 +52,14 @@ const runTTSAndSpeechRecognition = (speakText) => {
                     else {
                             console.log("result not found");
                     }
+                    
                 });
         })
      .catch((error) => console.error('Error with TTS or speech recognition:', error));
 };
 
-    
 const handleInputChange = (text, step_num) => {
+   console.log("text is",text);
     setspeechResult('');
     setInputValues(prevValues => ({
         ...prevValues,
@@ -90,7 +96,7 @@ const handleInputChange = (text, step_num) => {
                     placeholder={`Enter ${currentStepData.step_label}`}
                     
                 />
-                <Image source={require('/Users/anushkap/SpeechRecognitionProject/js/assets/mic.jpeg')} style={styles.image} />
+                
          </View>
         );
     };
@@ -122,6 +128,13 @@ const handleInputChange = (text, step_num) => {
                     <Text style={styles.speechResultText}>You Entered : {speechResult}</Text>
                 </View>
             )}
+
+            {recognizing && (
+                <View style={styles.recognizingContainer}>
+                    <Image source={require('/Users/anushkap/SpeechRecognitionProject/js/assets/listening.gif')} style={styles.image} />
+                    <Text style={styles.recognizingText}>Listening...</Text>
+                </View>
+            )}
             {!showSummary ? (
                 <>
                     {renderTextboxes()}
@@ -135,7 +148,6 @@ const handleInputChange = (text, step_num) => {
         </View>
     );
 };
-
 
 const styles = StyleSheet.create({
     container: {
@@ -161,21 +173,34 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         marginBottom: 20,
     },
-    image: {
+     recognizingContainer: {
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    recognizingText: {
+        marginTop: 10,
+        fontSize: 30,
+        fontStyle: 'italic',
+    },
+    gif: {
         width: 100,
         height: 100,
-        marginBottom: 100,
-        marginLeft: 200,
     },
     speechResultContainer: {
         marginTop: 20,
         padding: 10,
-        backgroundColor: '#d3d3d3',
         borderRadius: 5,
     },
     speechResultText: {
         fontSize: 16,
         fontStyle: 'italic',
+    },
+    text: {
+        color: 'white',
+        fontSize: 24,
+        fontWeight: 'bold',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',     
+        padding: 10,
     },
 });
 

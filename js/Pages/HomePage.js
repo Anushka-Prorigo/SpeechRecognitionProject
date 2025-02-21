@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {  useEffect } from 'react';
 import { View, Text, Image, Button, StyleSheet } from 'react-native';
 import { speak, initTTS } from '../utils/ttsUtils';  
 import { startSpeechRecognition} from '../utils/speechUtils'; 
