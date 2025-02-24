@@ -2,6 +2,7 @@ import React, {  useEffect } from 'react';
 import { View, Text, Image, Button, StyleSheet } from 'react-native';
 import { speak, initTTS } from '../utils/ttsUtils';  
 import { startSpeechRecognition} from '../utils/speechUtils'; 
+import styles from '../styles/HomePageStyle';
 
 const HomePage = ({ navigation }) => {
   useEffect(() => {
@@ -30,20 +31,5 @@ return (
         </View>
     );
 };
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    text: {
-        fontSize: 24,
-        marginBottom: 20,
-    },
-    image: {
-        width: 100,
-        height: 100,
-        marginBottom: 20,
-    },
-});
+
 export default HomePage;
