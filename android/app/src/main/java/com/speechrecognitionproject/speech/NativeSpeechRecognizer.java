@@ -72,7 +72,7 @@ public class NativeSpeechRecognizer implements ISpeechRecognizer {
                             @Override
                             public void onRmsChanged(float rmsdB) {
                                 Log.d("NativeSpeechRecognizer", "onRmsChanged");
-                                timeoutHandler.postDelayed(timeoutRunnable, 10000);
+                                timeoutHandler.postDelayed(timeoutRunnable, 50000);
                             }
                             @Override
                             public void onBufferReceived(byte[] buffer) {

@@ -14,6 +14,7 @@ public class TextToSpeechRecognitionModule extends ReactContextBaseJavaModule {
     private Callback engineReadyCallback;
     private boolean isTTSReady = false;
     private Callback ttsCallback;
+    private Callback engineNotReadyCallback;
 
 
     private ITextToSpeechListener listener = new ITextToSpeechListener() {
@@ -27,7 +28,11 @@ public class TextToSpeechRecognitionModule extends ReactContextBaseJavaModule {
         }
         @Override
         public void onReceiveError(@NonNull Error error) {
-            Log.e("Tag", "Something wen wrong ..");
+            Log.e("Tag", "Something went wrong ..");
+            isTTSReady = false;
+                if (engineReadyCallback == null) {
+                     engineNotReadyCallback.invoke(null, "TTS Engine is not ready");                }
+            };
         }
         @Override
         public void onTTSEngineReady() {
@@ -49,17 +54,32 @@ public class TextToSpeechRecognitionModule extends ReactContextBaseJavaModule {
     public String getName() {
         return "TextToSpeechRecognitionModule";
     }
-    @ReactMethod
-    public void initTTS(Callback callback) {
-        Log.e("Text","inittts called ny react native");
-        this.engineReadyCallback = callback;
-        nativeTextToVoiceRecognizer.addListener(listener);
-        nativeTextToVoiceRecognizer.startEngine();
-    }
+    // @ReactMethod
+    // public void initTTS(Callback callback) {
+    //     Log.e("Text","inittts called ny react native");
+    //     this.engineReadyCallback = callback;
+    //     nativeTextToVoiceRecognizer.addListener(listener);
+    //     nativeTextToVoiceRecognizer.startEngine();
+    // }
+
+    // @ReactMethod
+    // public void speak(String speakText, Callback callback) {
+    //    if (!isTTSReady) {
+    //         callback.invoke("TTS Engine is not ready", null);
+    //         return;
+    //     }else{
+    //         this.ttsCallback = callback;
+    //         nativeTextToVoiceRecognizer.speak(speakText);
+            
+    //     }
+    // }
 
     @ReactMethod
-    public void speak(String speakText, Callback callback) {
-       if (!isTTSReady) {
+    public void speak(String speakText, Callback successCallback, Callback errorCallback) {
+        ttsCallback = successCallback;
+        engineNotReadyCallback = errorCallback;
+        callbackInvoked = false;
+        if (!isTTSReady) {
             callback.invoke("TTS Engine is not ready", null);
             return;
         }else{
@@ -69,4 +89,13 @@ public class TextToSpeechRecognitionModule extends ReactContextBaseJavaModule {
         }
     }
 
-}
+   @ReactMethod
+    public void initTTS(Callback successCallback, Callback errorCallback) {
+        engineReadyCallback = successCallback;
+        engineNotReadyCallback = errorCallback;
+        callbackInvoked = false;
+        nativeTextToVoiceRecognizer.addListener(listener);
+        nativeTextToVoiceRecognizer.startEngine();
+    }
+
+

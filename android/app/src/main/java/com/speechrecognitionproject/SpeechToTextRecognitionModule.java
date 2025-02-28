@@ -28,14 +28,13 @@ public class SpeechToTextRecognitionModule extends ReactContextBaseJavaModule {
         return "SpeechToTextRecognitionModule";
     }
 
-
     public SpeechToTextRecognitionModule(ReactApplicationContext context) {
         super(context);
         this.nativeSpeechRecognizer = new NativeSpeechRecognizer(context); 
     }
 
 
-public void setListener(SpeechRecognitionListener listener) {
+    public void setListener(SpeechRecognitionListener listener) { 
         this.speechRecognitionListener = listener;
     }
     public SpeechRecognitionListener getListener() {
@@ -75,7 +74,7 @@ public void setListener(SpeechRecognitionListener listener) {
                         Log.d("SpeechRecognition", "Recognized Text: " + recognizedText);
 
                         speechCallback.invoke(null, " " + recognizedText); 
-                       Handler mainHandler = new Handler(Looper.getMainLooper());
+                        Handler mainHandler = new Handler(Looper.getMainLooper());
                         mainHandler.post(()-> {
                         nativeSpeechRecognizer.stopRecognition();
                     }); 
@@ -93,9 +92,14 @@ public void setListener(SpeechRecognitionListener listener) {
         
         @Override 
         public void onReceiveError(@NonNull String error) {
+          if (speechCallback != null) {
+            speechCallback.invoke(error, null);
+          }
+        
             Handler mainHandler = new Handler(Looper.getMainLooper());
                         mainHandler.post(()-> {
                         nativeSpeechRecognizer.stopRecognition();
+                        nativeSpeechRecognizer.setRecognitionListener(speechRecognitionListener);
                         nativeSpeechRecognizer.startRecognition();
                     }); 
         }
@@ -121,9 +125,7 @@ public void setListener(SpeechRecognitionListener listener) {
                        nativeSpeechRecognizer.stopRecognition();
                        nativeSpeechRecognizer.setRecognitionListener(speechRecognitionListener);
                        nativeSpeechRecognizer.startRecognition();
-                    }); 
-       
-        
-    }
+     }); 
+   }
 };
 
