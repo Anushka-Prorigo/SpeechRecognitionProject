@@ -1,43 +1,36 @@
-import { NativeModules } from 'react-native';
+import { Alert, NativeModules } from 'react-native';
 const {SpeechToTextRecognitionModule} = NativeModules;
 
 export const initializeSpeechRecognizer = () => {
-    if (!SpeechToTextRecognitionModule) {
-       console.error('SpeechRecognitionModule is not available');
-      return;
-    };
-
-    SpeechToTextRecognitionModule.initializeSpeechRecognizer((error, result) => {
-      if (error) {
-        console.log('SpeechToTextRecognition Initialization failed:', error);
-        return;
-      }
-     console.log(result);
-      if (result === 'SpeechToTextRecognition Engine is ready') {
-        console.log('TTS engine is ready in JavaScript');
-        };
-    });
-  };
-
-  export const startSpeechRecognition = () => {
-    return new Promise((resolve, reject) => {
-        if (SpeechToTextRecognitionModule && SpeechToTextRecognitionModule.startSpeechRecognition) {
-          SpeechToTextRecognitionModule.startSpeechRecognition((error, result) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    console.log('recognized text is:',result);
-                    resolve(result);
-                }
-            });
-        } else {
-            reject(new Error('TextToSpeechRecognitionModule is undefined'));
+    SpeechToTextRecognitionModule.initializeSpeechRecognizer(
+        (successMessage) => {
+            console.log('Success:', successMessage);
+            Alert.alert('Success', successMessage);
+        },
+        (errorMessage) => {
+            console.error('Error:', errorMessage);
+            Alert.alert('Error', errorMessage);
         }
-    });
+    );
 };
 
+export const startSpeechRecognition = (onSuccess, onError) => {
+    SpeechToTextRecognitionModule.startSpeechRecognition(
+        (recognizedText) => {
+            console.log('✅ Received Recognized Text:', recognizedText);
 
-
-
+            if (recognizedText && typeof recognizedText === 'string') {
+                if (onSuccess) onSuccess(recognizedText);
+            } else {
+                console.warn('⚠️ Received empty recognition result.');
+                if (onError) onError('Speech recognition returned empty result.');
+            }
+        },
+        (errorMessage) => {
+            console.error('❌ Speech Recognition Error:', errorMessage);
+            if (onError) onError(errorMessage);
+        }
+    );
+};
 
 

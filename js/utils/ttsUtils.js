@@ -1,36 +1,46 @@
 import { NativeModules } from 'react-native';
-const {TextToSpeechRecognitionModule} = NativeModules;
+const { TextToSpeechRecognitionModule } = NativeModules;
 
-export const initTTS = () => {
-    return new Promise((resolve, reject) => {
-        if (TextToSpeechRecognitionModule && TextToSpeechRecognitionModule.initTTS) {
-            TextToSpeechRecognitionModule.initTTS((error, result) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve(result);
-                }
-            });
-        } else {
-            reject(new Error('MyTTSModule.initTTS is undefined'));
-        }
-    });
+export const initTTS = (onSuccess, onError) => {
+    console.log('🔵 initTTS() called'); // <-- Debug log
+    if (!TextToSpeechRecognitionModule) {
+    console.error('❌ TTS Module is NULL!');
+    onError('TTS Module is not available');
+    return;
+    }
+
+    TextToSpeechRecognitionModule.initTTS(
+      (success) => {
+        console.log('✅ TTS Initialized:', success);
+        onSuccess();
+      },
+      (error) => {
+        console.error('❌ Error initializing TTS:', error);
+        onError(error);
+      }
+    );
 };
 
 
-export const speak = (text) => {
-    return new Promise((resolve, reject) => {
-        if (TextToSpeechRecognitionModule && TextToSpeechRecognitionModule.speak) {
-            TextToSpeechRecognitionModule.speak(text,(error, result) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve(result);
-                }
-            });
-        } else {
-            reject(new Error('TextToSpeechRecognitionModule is undefined'));
+export const speak = (text, onSuccess, onError) => {
+    console.log('🟢 Calling TextToSpeechRecognitionModule.speak() with:', text);
+
+    if (!TextToSpeechRecognitionModule || !TextToSpeechRecognitionModule.speak) {
+        console.error("❌ 'speak' method is missing in Native Module");
+        onError && onError("TTS Engine is not available");
+        return;
+    }
+
+    TextToSpeechRecognitionModule.speak(
+        text,
+        (successMessage) => {
+            console.log("✅ TTS Success:", successMessage);
+            onSuccess && onSuccess(successMessage); // Call the success callback
+        },
+        (errorMessage) => {
+            console.error("❌ TTS Error:", errorMessage);
+            onError && onError(errorMessage);
         }
-    });
+    );
 };
 

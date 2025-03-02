@@ -1,88 +1,97 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button,Image,TextInput, StyleSheet } from 'react-native';
-import jsonData from '/Users/anushkap/SpeechRecognitionProject/js/data/sample.json';
-import { speak, initTTS } from '../utils/ttsUtils';  
-import { startSpeechRecognition} from '../utils/speechUtils'; 
+import React, { useEffect, useState } from 'react';
+import { Button, Image, Text, TextInput, View } from 'react-native';
 import styles from '../styles/DynamicPageStyle';
+import { startSpeechRecognition } from '../utils/speechUtils';
+import { initTTS, speak } from '../utils/ttsUtils';
+import jsonData from '/home/sunbeam/speechRecogniton/SpeechRecognitionProject/js/data/sample.json';
 
 const steps = jsonData.steps;
 let text = '';
+
 const DynamicLayoutPage = ({navigation}) => {
     const [currentStep, setCurrentStep] = useState(steps[0]?.step_num || '');
     const [inputValues, setInputValues] = useState({});
-    const [speakText,setspeakText] = useState('');
-    const [showSummary,setShowSummary] = useState('');
-    const [speechResult,setspeechResult] = useState('');
-    const [recognizing,setrecognizing] = useState(false);
+    const [speakText, setspeakText] = useState('');
+    const [showSummary, setShowSummary] = useState(false);
+    const [speechResult, setspeechResult] = useState('');
+    const [recognizing, setRecognizing] = useState(false);
 
-useEffect(() => {
-    console.log(`Current Step: ${currentStep}`);
-    const currentStepData = steps.find(step => step.step_num === currentStep);
-    if (currentStepData) {
-        setspeakText(currentStepData.step_label);
-        runTTSAndSpeechRecognition( currentStepData.step_label);
-    } else {
-        console.error(`Step data for step number ${currentStep} not found.`);
-    }
-}, [currentStep]);
-
-
-const runTTSAndSpeechRecognition = (speakText) => {
-    initTTS()
-        .then(() => {
-            return speak(speakText); 
-        })
-        .then(() => {
-            setrecognizing(true);
-            return startSpeechRecognition()
-            .then((speechResult) => {
-                setrecognizing(false);
-                    console.log('Recognized text:', speechResult);
-                    setspeechResult(speechResult);
-                    if (!speechResult.toLowerCase().includes('yes') && !speechResult.toLowerCase().includes('no')) { 
-                            text = speechResult;
-                            return runTTSAndSpeechRecognition("confirm"+speechResult);
-                           
-                     }
-                    else if (speechResult.toLowerCase().includes('yes')) {
-                            handleInputChange(text, currentStep);
-                    } 
-                     else if (speechResult.toLowerCase().includes('no')) {
-                           startSpeechRecognition();
-                    }
-                    else {
-                            console.log("result not found");
-                    }
-                    
-                });
-        })
-     .catch((error) => console.error('Error with TTS or speech recognition:', error));
-};
-
-const handleInputChange = (text, step_num) => {
-   console.log("text is",text);
-    setspeechResult('');
-    setInputValues(prevValues => ({
-        ...prevValues,
-        [currentStep]: text
-    }));
-    console.log("handleInputChange","");
-    if (text.trim() !== '') {
-        const currentStepData = steps.find(step => step.step_num === step_num);
+    useEffect(() => {
+        console.log(`Current Step: ${currentStep}`);
+        const currentStepData = steps.find(step => step.step_num === currentStep);
         if (currentStepData) {
-            console.log(`Moving to next step: ${currentStepData.next_step}`);
-            if (currentStepData.next_step) {
-                setCurrentStep(currentStepData.next_step);
+            setspeakText(currentStepData.step_label);
+            runTTSAndSpeechRecognition(currentStepData.step_label);
+        } else {
+            console.error(`Step data for step number ${currentStep} not found.`);
+        }
+    }, [currentStep]);
+
+    const runTTSAndSpeechRecognition = (speakText) => {
+        initTTS(
+            () => {
+                speak(speakText, 
+                    (result) => {
+                        console.log('Result from speak:', result);
+                        setRecognizing(true);
+                        startSpeechRecognition(
+                            (speechResult) => {
+                                setRecognizing(false);
+                                console.log('Recognized text:', speechResult);
+                                setspeechResult(speechResult);
+                                if (!speechResult.toLowerCase().includes('yes') && !speechResult.toLowerCase().includes('no')) { 
+                                    text = speechResult;
+                                    runTTSAndSpeechRecognition("confirm " + speechResult);
+                                } else if (speechResult.toLowerCase().includes('yes')) {
+                                    handleInputChange(text, currentStep);
+                                } else if (speechResult.toLowerCase().includes('no')) {
+                                    startSpeechRecognition();
+                                } else {
+                                    console.log("result not found");
+                                }
+                            },
+                            (errorMessage) => {
+                                console.error('Error recognizing speech:', errorMessage);
+                                startSpeechRecognition();
+                            }
+                        );
+                    },
+                    (errorMessage) => {
+                        console.error('Error speaking:', errorMessage);
+                    }
+                );
+            },
+            (errorMessage) => {
+                console.error('Error initializing TTS:', errorMessage);
+            }
+        );
+    };
+
+    const handleInputChange = (text, step_num) => {
+        console.log("text is", text);
+        setspeechResult('');
+        setInputValues(prevValues => ({
+            ...prevValues,
+            [currentStep]: text
+        }));
+        console.log("handleInputChange", "");
+        if (text.trim() !== '') {
+            const currentStepData = steps.find(step => step.step_num === step_num);
+            if (currentStepData) {
+                console.log(`Moving to next step: ${currentStepData.next_step}`);
+                if (currentStepData.next_step) {
+                    setCurrentStep(currentStepData.next_step);
+                } else {
+                    setShowSummary(true);
+                }
             } else {
-                setShowSummary(true);
+                console.warn('currentStepData or next_step is undefined');
             }
         } else {
-            console.warn('currentStepData or next_step is undefined');
+            console.warn('Text is empty after trimming');
         }
-    } else {
-        console.warn('Text is empty after trimming');
-    }
-};
+    };
+
     const renderTextboxes = () => {
         const currentStepData = steps.find(step => step.step_num === currentStep);
         if (!currentStepData) return null;
@@ -95,10 +104,8 @@ const handleInputChange = (text, step_num) => {
                     onChangeText={(text) => handleInputChange(text, currentStepData.step_num)}
                     value={inputValues[currentStepData.step_num]}
                     placeholder={`Enter ${currentStepData.step_label}`}
-                    
                 />
-                
-         </View>
+            </View>
         );
     };
 
@@ -122,6 +129,7 @@ const handleInputChange = (text, step_num) => {
             </View>
         );
     };
+
     return (
         <View style={styles.container}>
             {speechResult && (
@@ -132,7 +140,7 @@ const handleInputChange = (text, step_num) => {
 
             {recognizing && (
                 <View style={styles.recognizingContainer}>
-                    <Image source={require('/Users/anushkap/SpeechRecognitionProject/js/assets/listening.gif')} style={styles.image} />
+                    <Image source={require('/home/sunbeam/speechRecogniton/SpeechRecognitionProject/js/assets/listening.gif')} style={styles.image} />
                     <Text style={styles.recognizingText}>Listening...</Text>
                 </View>
             )}
@@ -149,6 +157,5 @@ const handleInputChange = (text, step_num) => {
         </View>
     );
 };
-
 
 export default DynamicLayoutPage;
